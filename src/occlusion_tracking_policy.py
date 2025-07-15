@@ -3,9 +3,9 @@ import cv2
 from typing import Dict, Tuple, Optional
 import math
 
-class ImprovedTrackingPolicy:
+class OcclusionTrackingPolicy:
     """
-    Improved visual servoing policy for SO-ARM101 object tracking
+    Enhanced visual servoing policy for SO-ARM101 object tracking with occlusion handling
     """
     
     def __init__(self, config: Dict):
@@ -18,45 +18,67 @@ class ImprovedTrackingPolicy:
         
         # Visual servoing parameters
         self.error_threshold_fast = 0.3  # Switch to slow gain below this
-        self.deadzone_radius = 0.08      # Stop moving if error is very small (increased for better centering)
+        self.deadzone_radius = 0.08      # Stop moving if error is very small
+        self.occlusion_threshold = 0.5   # Consider target occluded above this
         
         # Tracking state
         self.last_target_position = None
         self.lost_target_steps = 0
+        self.occlusion_steps = 0
         self.search_direction = 1
         self.search_joint = 0
+        
+        # Occlusion handling state
+        self.last_known_position = None
+        self.occlusion_search_phase = 0
         
         # Performance tracking
         self.tracking_errors = []
         self.control_actions = []
+        self.target_centered_steps = 0
         
-        print(f"🎯 Improved tracking policy initialized:")
+        print(f"🎯 Occlusion tracking policy initialized:")
         print(f"   Fast gain: {self.p_gain_fast}, Slow gain: {self.p_gain_slow}")
         print(f"   Max velocity: {self.max_velocity}")
+        print(f"   Occlusion threshold: {self.occlusion_threshold}")
         
     def predict(self, observation: Dict) -> np.ndarray:
-        """Predict action based on observation"""
+        """Predict action based on observation with occlusion handling"""
         camera_image = observation['camera_image']
         joint_positions = observation['joint_positions']
         target_in_view = observation['target_in_view'][0]
         center_distance = observation['target_center_distance'][0]
+        target_occluded = observation['target_occluded'][0]
         
         # Enhanced target detection
         target_pixel_pos = self._detect_target_position(camera_image)
         
-        if target_pixel_pos is not None:
-            # Check if target is already well-centered
-            if center_distance < self.deadzone_radius:
-                # Target is centered - stop moving
-                action = np.zeros(len(joint_positions))
-                self.target_centered_steps += 1
-                print(f"🎯 Target centered! Distance: {center_distance:.3f}, stopping movement")
+        if target_pixel_pos is not None and target_in_view > 0.5:
+            # Target is visible
+            self.last_known_position = target_pixel_pos
+            
+            # Check occlusion level
+            if target_occluded > self.occlusion_threshold:
+                # Target is heavily occluded - use occlusion handling
+                action = self._handle_occlusion(target_pixel_pos, camera_image.shape, 
+                                              joint_positions, center_distance, target_occluded)
+                self.occlusion_steps += 1
+                print(f"🚧 Target occluded ({target_occluded:.2f}), searching for clear view")
             else:
-                # Target visible but not centered - use improved visual servoing
-                action = self._improved_visual_servoing(
-                    target_pixel_pos, camera_image.shape, joint_positions, center_distance
-                )
-                self.target_centered_steps = 0  # Reset counter when moving
+                # Target is clearly visible
+                if center_distance < self.deadzone_radius:
+                    # Target is centered and clear - stop moving
+                    action = np.zeros(len(joint_positions))
+                    self.target_centered_steps += 1
+                    print(f"🎯 Target centered and clear! Distance: {center_distance:.3f}")
+                else:
+                    # Target visible but not centered - use normal visual servoing
+                    action = self._improved_visual_servoing(
+                        target_pixel_pos, camera_image.shape, joint_positions, center_distance
+                    )
+                    self.target_centered_steps = 0
+                
+                self.occlusion_steps = 0
                 
             self.lost_target_steps = 0
             self.last_target_position = target_pixel_pos
@@ -65,7 +87,8 @@ class ImprovedTrackingPolicy:
             # Target lost - intelligent search
             action = self._intelligent_search(joint_positions)
             self.lost_target_steps += 1
-            self.target_centered_steps = 0  # Reset counter when searching
+            self.target_centered_steps = 0
+            self.occlusion_steps = 0
             
         # Smooth and clip action
         action = self._smooth_action(action)
@@ -115,12 +138,12 @@ class ImprovedTrackingPolicy:
                 valid_contours = []
                 for contour in contours:
                     area = cv2.contourArea(contour)
-                    if area > 200:  # Minimum area
-                        # Check circularity
+                    if area > 50:  # Lower threshold for partially occluded objects
+                        # Check circularity (more lenient for occluded objects)
                         perimeter = cv2.arcLength(contour, True)
                         if perimeter > 0:
                             circularity = 4 * np.pi * area / (perimeter * perimeter)
-                            if circularity > 0.3:  # Reasonably circular
+                            if circularity > 0.2:  # More lenient for occlusion
                                 valid_contours.append((contour, area))
                 
                 if valid_contours:
@@ -139,9 +162,97 @@ class ImprovedTrackingPolicy:
             
         return None
         
+    def _handle_occlusion(self, target_pos: Tuple[int, int], image_shape: Tuple,
+                         joint_positions: np.ndarray, center_distance: float, 
+                         occlusion_level: float) -> np.ndarray:
+        """Handle occluded target by searching for better viewpoint"""
+        height, width = image_shape[:2]
+        
+        # Use reduced gains for occlusion handling
+        occlusion_gain = self.p_gain_slow * 0.7
+        
+        # Determine search strategy based on occlusion level
+        if occlusion_level > 0.8:
+            # Heavily occluded - search for completely new viewpoint
+            return self._occlusion_search(joint_positions, aggressive=True)
+        elif occlusion_level > 0.5:
+            # Partially occluded - try to move around the occlusion
+            return self._circumvent_occlusion(target_pos, image_shape, joint_positions, center_distance)
+        else:
+            # Lightly occluded - use normal tracking with reduced gain
+            return self._improved_visual_servoing(target_pos, image_shape, joint_positions, 
+                                                center_distance, gain_modifier=0.5)
+    
+    def _circumvent_occlusion(self, target_pos: Tuple[int, int], image_shape: Tuple,
+                             joint_positions: np.ndarray, center_distance: float) -> np.ndarray:
+        """Try to move around occlusion while keeping target in view"""
+        height, width = image_shape[:2]
+        center_x, center_y = width // 2, height // 2
+        
+        # Calculate direction to move camera to circumvent occlusion
+        error_x = target_pos[0] - center_x
+        error_y = target_pos[1] - center_y
+        
+        # Determine which direction to move to avoid occlusion
+        # Simple heuristic: move perpendicular to target direction
+        if abs(error_x) > abs(error_y):
+            # Move vertically to avoid horizontal occlusion
+            circumvent_y = 0.3 * np.sign(error_y) if error_y != 0 else 0.3
+            circumvent_x = 0.1 * np.sign(error_x)
+        else:
+            # Move horizontally to avoid vertical occlusion
+            circumvent_x = 0.3 * np.sign(error_x) if error_x != 0 else 0.3
+            circumvent_y = 0.1 * np.sign(error_y)
+        
+        # Create action to circumvent occlusion
+        action = np.zeros(len(joint_positions))
+        
+        if len(action) >= 6:
+            # Move to circumvent occlusion
+            action[0] = circumvent_x * 1.0  # Base rotation
+            action[1] = circumvent_y * 0.8  # Shoulder
+            action[2] = circumvent_y * 0.5  # Elbow
+            action[3] = circumvent_y * 0.3  # Wrist pitch
+            action[4] = circumvent_x * 0.4  # Wrist roll
+            action[5] = 0.0  # Camera joint disabled
+            
+        return action * self.max_velocity
+    
+    def _occlusion_search(self, joint_positions: np.ndarray, aggressive: bool = False) -> np.ndarray:
+        """Search for unoccluded view of target"""
+        action = np.zeros(len(joint_positions))
+        
+        # Cycle through different search phases
+        search_phase = self.occlusion_steps // 15  # Change phase every 1.5 seconds
+        
+        search_intensity = 1.0 if aggressive else 0.6
+        
+        if search_phase % 4 == 0:
+            # Phase 1: Horizontal search (base rotation)
+            action[0] = search_intensity * self.search_direction
+            
+        elif search_phase % 4 == 1:
+            # Phase 2: Vertical search (shoulder movement)
+            action[1] = search_intensity * 0.7 * self.search_direction
+            
+        elif search_phase % 4 == 2:
+            # Phase 3: Combined movement
+            action[0] = search_intensity * 0.5 * self.search_direction
+            action[1] = search_intensity * 0.5 * (-self.search_direction)
+            
+        else:
+            # Phase 4: Elbow adjustment
+            action[2] = search_intensity * 0.6 * self.search_direction
+            
+        # Reverse direction periodically
+        if self.occlusion_steps % 60 == 0:  # Every 6 seconds
+            self.search_direction *= -1
+            
+        return action * self.max_velocity
+        
     def _improved_visual_servoing(self, target_pos: Tuple[int, int], 
                                 image_shape: Tuple, joint_positions: np.ndarray,
-                                center_distance: float) -> np.ndarray:
+                                center_distance: float, gain_modifier: float = 1.0) -> np.ndarray:
         """Improved visual servoing with adaptive gains"""
         height, width = image_shape[:2]
         center_x, center_y = width // 2, height // 2
@@ -165,6 +276,9 @@ class ImprovedTrackingPolicy:
             gain = self.p_gain_fast
         else:
             gain = self.p_gain_slow
+            
+        # Apply gain modifier for occlusion handling
+        gain *= gain_modifier
             
         # Initialize action
         action = np.zeros(len(joint_positions))
@@ -251,5 +365,6 @@ class ImprovedTrackingPolicy:
             'std_tracking_error': np.std(self.tracking_errors),
             'tracking_steps': len(self.tracking_errors),
             'lost_target_episodes': self.lost_target_steps,
+            'occlusion_episodes': self.occlusion_steps,
             'recent_performance': np.mean(self.tracking_errors[-50:]) if len(self.tracking_errors) >= 50 else np.mean(self.tracking_errors)
         }

@@ -9,10 +9,10 @@ from typing import Tuple, Dict, Optional
 import math
 from pathlib import Path
 
-class SO101CameraTrackingEnv(gym.Env):
+class SO101OcclusionTrackingEnv(gym.Env):
     """
-    SO-ARM101 with camera end-effector for object tracking
-    Goal: Move camera to center target object in view
+    SO-ARM101 with camera end-effector for object tracking with occlusion
+    Goal: Move camera to center target object in view despite occlusion
     """
     
     def __init__(self, render_mode="human", camera_width=640, camera_height=480):
@@ -27,6 +27,7 @@ class SO101CameraTrackingEnv(gym.Env):
         self.physics_client = None
         self.robot_id = None
         self.target_object_id = None
+        self.occlusion_object_id = None
         self.plane_id = None
         
         # Robot parameters - SO-ARM101 specific
@@ -64,11 +65,15 @@ class SO101CameraTrackingEnv(gym.Env):
             ),
             'target_center_distance': spaces.Box(
                 low=0, high=1, shape=(1,), dtype=np.float32
+            ),
+            'target_occluded': spaces.Box(
+                low=0, high=1, shape=(1,), dtype=np.float32
             )
         })
         
         # Tracking state
         self.target_position = np.array([0.5, 0.0, 0.1])
+        self.occlusion_position = np.array([0.7, 0.0, 0.1])
         self.camera_center = np.array([camera_width//2, camera_height//2])
         self.max_episode_steps = 500
         self.current_step = 0
@@ -162,7 +167,7 @@ class SO101CameraTrackingEnv(gym.Env):
                 color = [0.5, 0.5, 0.5, 1.0]  # Gray for other parts
                 
             p.changeVisualShape(self.robot_id, i, rgbaColor=color)
-        
+
     def reset(self, seed=None, options=None):
         """Reset the environment"""
         super().reset(seed=seed)
@@ -208,10 +213,11 @@ class SO101CameraTrackingEnv(gym.Env):
         # Create target object
         self._create_target_object()
         
+        # Create occlusion object
+        self._create_occlusion_object()
+        
         # Set initial robot configuration
         self._reset_robot_pose()
-        
-    
         
     def _create_fallback_robot(self):
         """Create fallback robot if URDF fails"""
@@ -259,18 +265,18 @@ class SO101CameraTrackingEnv(gym.Env):
         
     def _create_target_object(self):
         """Create target object to track"""
-        # Create a bright red sphere
-        object_shape = p.createCollisionShape(p.GEOM_SPHERE, radius=0.08)
+        # Create a smaller bright red sphere
+        object_shape = p.createCollisionShape(p.GEOM_SPHERE, radius=0.04)
         object_visual = p.createVisualShape(
             p.GEOM_SPHERE, 
-            radius=0.08,
+            radius=0.04,
             rgbaColor=[1, 0, 0, 1]  # Bright red
         )
         
-        # Place target object in front of robot on ground level
-        x = np.random.uniform(0.8, 1.2)    # Forward distance (in front of robot)
-        y = np.random.uniform(-0.3, 0.3)   # Small left/right variation (mostly centered)
-        z = 0.05  # Fixed height on ground level (objects always on ground)
+        # Place target object closer to robot on ground level
+        x = np.random.uniform(0.4, 0.6)    # Closer forward distance
+        y = np.random.uniform(-0.15, 0.15)  # Smaller left/right variation
+        z = 0.02  # Lower height on ground level
         self.target_position = np.array([x, y, z])
         
         self.target_object_id = p.createMultiBody(
@@ -281,6 +287,38 @@ class SO101CameraTrackingEnv(gym.Env):
         )
         
         print(f"🎯 Target object created at {self.target_position}")
+        
+    def _create_occlusion_object(self):
+        """Create minimal occlusion object"""
+        # Create a smaller gray box as occlusion (smaller than target)
+        box_size = [0.015, 0.015, 0.05]  # Smaller than target sphere (radius 0.04)
+        object_shape = p.createCollisionShape(p.GEOM_BOX, halfExtents=box_size)
+        object_visual = p.createVisualShape(
+            p.GEOM_BOX, 
+            halfExtents=box_size,
+            rgbaColor=[0.5, 0.5, 0.5, 1]  # Gray color
+        )
+        
+        # Place occlusion object between robot and target (25% occlusion)
+        target_x = self.target_position[0]
+        target_y = self.target_position[1]
+        
+        # Position occlusion to cover only 25% of target
+        occlusion_x = target_x * 0.85  # 85% of the way to target (closer to camera)
+        # Offset to cover only edge of target (25% coverage)
+        occlusion_y = target_y + np.random.choice([-0.03, 0.03])  # Either left or right edge
+        occlusion_z = 0.05  # Same height as target for partial side coverage
+        
+        self.occlusion_position = np.array([occlusion_x, occlusion_y, occlusion_z])
+        
+        self.occlusion_object_id = p.createMultiBody(
+            baseMass=0.0,  # Static object
+            baseCollisionShapeIndex=object_shape,
+            baseVisualShapeIndex=object_visual,
+            basePosition=self.occlusion_position
+        )
+        
+        print(f"🚧 Occlusion object created at {self.occlusion_position}")
         
     def _reset_robot_pose(self):
         """Reset robot to initial pose"""
@@ -392,7 +430,8 @@ class SO101CameraTrackingEnv(gym.Env):
             'camera_image': camera_image,
             'joint_positions': joint_positions,
             'target_in_view': np.array([target_info['in_view']], dtype=np.float32),
-            'target_center_distance': np.array([target_info['center_distance']], dtype=np.float32)
+            'target_center_distance': np.array([target_info['center_distance']], dtype=np.float32),
+            'target_occluded': np.array([target_info['occluded']], dtype=np.float32)
         }
         
         return observation
@@ -403,7 +442,8 @@ class SO101CameraTrackingEnv(gym.Env):
             'camera_image': np.zeros((self.camera_height, self.camera_width, 3), dtype=np.uint8),
             'joint_positions': np.zeros(6, dtype=np.float32),
             'target_in_view': np.array([0.0], dtype=np.float32),
-            'target_center_distance': np.array([1.0], dtype=np.float32)
+            'target_center_distance': np.array([1.0], dtype=np.float32),
+            'target_occluded': np.array([1.0], dtype=np.float32)
         }
         
     def _get_camera_image(self):
@@ -532,11 +572,12 @@ class SO101CameraTrackingEnv(gym.Env):
         return np.array(joint_positions[:self.num_joints], dtype=np.float32)
         
     def _get_target_info(self, camera_image):
-        """Detect target in camera image"""
+        """Detect target in camera image and check for occlusion"""
         target_info = {
             'in_view': 0.0,
             'center_distance': 1.0,
-            'pixel_position': None
+            'pixel_position': None,
+            'occluded': 0.0
         }
         
         if camera_image is None or camera_image.size == 0:
@@ -585,22 +626,36 @@ class SO101CameraTrackingEnv(gym.Env):
                         max_distance = np.sqrt(center_x**2 + center_y**2)
                         target_info['center_distance'] = min(distance / max_distance, 1.0)
                         
+                        # Check for occlusion based on target area (smaller area = more occluded)
+                        expected_area = 400  # Expected area when not occluded (25% occlusion setup)
+                        occlusion_ratio = max(0, 1.0 - (area / expected_area))
+                        target_info['occluded'] = min(occlusion_ratio, 1.0)
+                        
         except Exception as e:
             print(f"⚠️  Target detection failed: {e}")
             
         return target_info
         
     def _calculate_reward(self, observation):
-        """Calculate improved reward for current state"""
+        """Calculate improved reward for current state with occlusion awareness"""
         reward = 0.0
         
         target_in_view = observation['target_in_view'][0]
         center_distance = observation['target_center_distance'][0]
+        target_occluded = observation['target_occluded'][0]
         joint_positions = observation['joint_positions']
         
         # Base reward for having target in view
         if target_in_view > 0.5:
             reward += 3.0
+            
+            # Penalty for occlusion - encourage finding unoccluded view
+            occlusion_penalty = target_occluded * 5.0
+            reward -= occlusion_penalty
+            
+            # Bonus for unoccluded view
+            if target_occluded < 0.3:
+                reward += 5.0  # Clear view bonus
             
             # Smooth, continuous centering reward (exponential decay)
             centering_reward = np.exp(-2.0 * center_distance) * 10.0
@@ -632,9 +687,6 @@ class SO101CameraTrackingEnv(gym.Env):
             extreme_position_penalty = np.sum(np.abs(joint_positions) > 2.0) * 0.5
             reward -= extreme_position_penalty
             
-            # Penalty for high joint velocities (if available)
-           
-                
         # Energy efficiency bonus (prefer smaller movements)
         if target_in_view > 0.5 and center_distance < 0.3:
             efficiency_bonus = 1.0 / (1.0 + np.sum(np.abs(joint_positions)) * 0.1)

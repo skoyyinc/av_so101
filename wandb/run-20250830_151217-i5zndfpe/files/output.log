@@ -1,0 +1,53 @@
+🏗️  Creating multi-robot environment with 4 robots...
+🔬 Creating evaluation environment...
+📁 Found URDF: urdf/so101_new_calib.urdf
+📁 Loading SO-ARM101 URDF: urdf/so101_new_calib.urdf
+✅ SO-ARM101 URDF loaded successfully
+🔧 Robot has 8 total joints
+  Joint 0: shoulder_pan (type: 0)
+  Joint 1: shoulder_lift (type: 0)
+  Joint 2: elbow_flex (type: 0)
+  Joint 3: wrist_flex (type: 0)
+  Joint 4: wrist_roll (type: 0)
+  Joint 5: gripper_frame_joint (EXCLUDED - gripper frozen)
+  Joint 6: gripper (EXCLUDED - gripper frozen)
+✅ Using 5 controllable joints: [0, 1, 2, 3, 4]
+🎯 Target object created at [1.06791497 0.23885683 0.05      ]
+✅ Robot reset to initial pose
+📁 Loading SO-ARM101 URDF: urdf/so101_new_calib.urdf
+✅ SO-ARM101 URDF loaded successfully
+🔧 Robot has 8 total joints
+  Joint 0: shoulder_pan (type: 0)
+  Joint 1: shoulder_lift (type: 0)
+  Joint 2: elbow_flex (type: 0)
+  Joint 3: wrist_flex (type: 0)
+  Joint 4: wrist_roll (type: 0)
+  Joint 5: gripper_frame_joint (EXCLUDED - gripper frozen)
+  Joint 6: gripper (EXCLUDED - gripper frozen)
+✅ Using 5 controllable joints: [0, 1, 2, 3, 4]
+🎯 Target object created at [ 0.93736972 -0.03343139  0.05      ]
+✅ Robot reset to initial pose
+🚀 Training SAC on cuda
+📊 Policy networks: {'pi': [256, 256], 'qf': [256, 256]}
+Using cuda device
+Wrapping the env in a DummyVecEnv.
+Traceback (most recent call last):
+  File "/home/daffafrs/Documents/lerobot/av_so101/train_sac_active_vision.py", line 209, in <module>
+    main()
+  File "/home/daffafrs/Documents/lerobot/av_so101/train_sac_active_vision.py", line 136, in main
+    model = SAC(
+  File "/home/daffafrs/miniconda3/envs/lerobot/lib/python3.10/site-packages/stable_baselines3/sac/sac.py", line 122, in __init__
+    super().__init__(
+  File "/home/daffafrs/miniconda3/envs/lerobot/lib/python3.10/site-packages/stable_baselines3/common/off_policy_algorithm.py", line 112, in __init__
+    super().__init__(
+  File "/home/daffafrs/miniconda3/envs/lerobot/lib/python3.10/site-packages/stable_baselines3/common/base_class.py", line 170, in __init__
+    env = self._wrap_env(env, self.verbose, monitor_wrapper)
+  File "/home/daffafrs/miniconda3/envs/lerobot/lib/python3.10/site-packages/stable_baselines3/common/base_class.py", line 224, in _wrap_env
+    env = DummyVecEnv([lambda: env])  # type: ignore[list-item, return-value]
+  File "/home/daffafrs/miniconda3/envs/lerobot/lib/python3.10/site-packages/stable_baselines3/common/vec_env/dummy_vec_env.py", line 45, in __init__
+    self.keys, shapes, dtypes = obs_space_info(obs_space)
+  File "/home/daffafrs/miniconda3/envs/lerobot/lib/python3.10/site-packages/stable_baselines3/common/vec_env/util.py", line 49, in obs_space_info
+    check_for_nested_spaces(obs_space)
+  File "/home/daffafrs/miniconda3/envs/lerobot/lib/python3.10/site-packages/stable_baselines3/common/preprocessing.py", line 225, in check_for_nested_spaces
+    raise NotImplementedError(
+NotImplementedError: Nested observation spaces are not supported (Tuple/Dict space inside Tuple/Dict space).

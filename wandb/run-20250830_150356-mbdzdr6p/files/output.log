@@ -1,0 +1,28 @@
+🏗️  Creating training environment...
+📁 Found URDF: urdf/so101_new_calib.urdf
+📁 Found URDF: urdf/so101_new_calib.urdf
+📁 Found URDF: urdf/so101_new_calib.urdf
+📁 Found URDF: urdf/so101_new_calib.urdf
+🔬 Creating evaluation environment...
+📁 Found URDF: urdf/so101_new_calib.urdf
+🚀 Training SAC on cuda
+📊 Policy networks: {'pi': [256, 256], 'qf': [256, 256]}
+Using cuda device
+Wrapping the env in a VecTransposeImage.
+/home/daffafrs/miniconda3/envs/lerobot/lib/python3.10/site-packages/stable_baselines3/common/buffers.py:606: UserWarning: This system does not have apparently enough memory to store the complete replay buffer 39.35GB > 27.35GB
+  warnings.warn(
+🎯 Starting training for 200,000 timesteps
+============================================================
+📁 Loading SO-ARM101 URDF: urdf/so101_new_calib.urdf
+✅ SO-ARM101 URDF loaded successfully
+🔧 Robot has 8 total joints
+  Joint 0: shoulder_pan (type: 0)
+  Joint 1: shoulder_lift (type: 0)
+  Joint 2: elbow_flex (type: 0)
+  Joint 3: wrist_flex (type: 0)
+  Joint 4: wrist_roll (type: 0)
+  Joint 5: gripper_frame_joint (EXCLUDED - gripper frozen)
+  Joint 6: gripper (EXCLUDED - gripper frozen)
+✅ Using 5 controllable joints: [0, 1, 2, 3, 4]
+🎯 Target object created at [ 1.06250073 -0.01477878  0.05      ]
+✅ Robot reset to initial pose

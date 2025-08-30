@@ -44,9 +44,9 @@ class SO101CameraTrackingEnv(gym.Env):
             (-np.pi, np.pi)       # Wrist rotation
         ]
         
-        # Action space: joint velocities for 6 DOF arm
+        # Action space: joint velocities for 4 DOF arm (active vision)
         self.action_space = spaces.Box(
-            low=-1.0, high=1.0, shape=(self.num_joints,), dtype=np.float32
+            low=-1.0, high=1.0, shape=(4,), dtype=np.float32
         )
         
         # Observation space
@@ -57,7 +57,7 @@ class SO101CameraTrackingEnv(gym.Env):
                 dtype=np.uint8
             ),
             'joint_positions': spaces.Box(
-                low=-np.pi, high=np.pi, shape=(self.num_joints,), dtype=np.float32
+                low=-np.pi, high=np.pi, shape=(4,), dtype=np.float32
             ),
             'target_in_view': spaces.Box(
                 low=0, high=1, shape=(1,), dtype=np.float32
@@ -86,9 +86,9 @@ class SO101CameraTrackingEnv(gym.Env):
         
         # Try different URDF options in order of preference
         urdf_options = [
-            urdf_dir / "so_arm101_camera.urdf",  # With meshes
+            urdf_dir / "so101_new_calib.urdf",   # Properly calibrated with meshes
+            urdf_dir / "so_arm101_camera.urdf",  # Camera version (may have alignment issues)
             urdf_dir / "so_arm101_simple.urdf",  # Simple geometry
-            urdf_dir / "so101_new_calib.urdf",   # If you have the original
         ]
         
         for urdf_path in urdf_options:
@@ -107,6 +107,7 @@ class SO101CameraTrackingEnv(gym.Env):
             # Set search path for mesh files
             urdf_dir = Path(self.urdf_path).parent
             p.setAdditionalSearchPath(str(urdf_dir))
+            p.setAdditionalSearchPath(str(urdf_dir / "assets"))
             
             base_position = [0, 0, 0]
             base_orientation = p.getQuaternionFromEuler([0, 0, 0])
@@ -180,9 +181,17 @@ class SO101CameraTrackingEnv(gym.Env):
             p.disconnect(self.physics_client)
             
         if self.render_mode == "human":
-            self.physics_client = p.connect(p.GUI)
+            self.physics_client = p.connect(p.GUI, options="--gpu_id=1")
         else:
-            self.physics_client = p.connect(p.DIRECT)
+            self.physics_client = p.connect(p.DIRECT, options="--gpu_id=1")
+            
+        # Enable GPU acceleration for rendering
+        try:
+            p.configureDebugVisualizer(p.COV_ENABLE_GPU_RENDER_SEGMENTATION_MASK_PLUGIN, 1)
+            p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1)
+            print("✅ GPU rendering enabled")
+        except:
+            print("⚠️  GPU rendering not available, using CPU")
             
         p.setAdditionalSearchPath(pybullet_data.getDataPath())
         p.setGravity(0, 0, -9.81)
@@ -241,14 +250,18 @@ class SO101CameraTrackingEnv(gym.Env):
             joint_name = info[1].decode('utf-8')
             joint_type = info[2]
             
-            # Only use revolute and prismatic joints
-            if joint_type in [p.JOINT_REVOLUTE, p.JOINT_PRISMATIC]:
+            # Only use revolute and prismatic joints, but exclude gripper and wrist_roll
+            if (joint_type in [p.JOINT_REVOLUTE, p.JOINT_PRISMATIC] and 
+                'gripper' not in joint_name.lower() and 
+                'wrist_roll' not in joint_name.lower()):
                 self.joint_indices.append(i)
                 joint_info.append((i, joint_name, joint_type))
                 print(f"  Joint {i}: {joint_name} (type: {joint_type})")
+            elif 'gripper' in joint_name.lower() or 'wrist_roll' in joint_name.lower():
+                print(f"  Joint {i}: {joint_name} (EXCLUDED - frozen for active vision)")
         
-        # Limit to 6 controllable joints for SO-ARM101
-        self.joint_indices = self.joint_indices[:6]
+        # Limit to 4 controllable joints for active vision (no gripper, no wrist_roll)
+        self.joint_indices = self.joint_indices[:4]
         self.num_joints = len(self.joint_indices)
         
         print(f"✅ Using {self.num_joints} controllable joints: {self.joint_indices}")
@@ -334,6 +347,19 @@ class SO101CameraTrackingEnv(gym.Env):
         """Apply action to robot joints with proper control and sky-prevention constraints"""
         if self.robot_id is None or not self.joint_indices:
             return
+            
+        # Debug output
+        if hasattr(self, '_debug_step_count'):
+            self._debug_step_count += 1
+        else:
+            self._debug_step_count = 0
+            
+        if self._debug_step_count % 100 == 0:
+            print(f"Debug: action shape={action.shape}, joint_indices={self.joint_indices}, num_joints={self.num_joints}")
+            
+        # Ensure action matches available joints
+        if len(action) > len(self.joint_indices):
+            action = action[:len(self.joint_indices)]  # Truncate to available joints
             
         # Scale action to reasonable velocities - Increased for better responsiveness
         max_velocity = 3.0  # rad/s (increased from 1.5)
@@ -441,11 +467,11 @@ class SO101CameraTrackingEnv(gym.Env):
         # Get the end-effector orientation and compute forward direction
         rotation_matrix = p.getMatrixFromQuaternion(camera_orn)
         
-        # Camera forward direction (along -X axis in end-effector frame, was backwards)
+        # Camera forward direction (along X axis in end-effector frame)
         forward_direction = [
-            -rotation_matrix[0],  # -X component of X axis (reversed)
-            -rotation_matrix[3],  # -Y component of X axis (reversed)
-            -rotation_matrix[6]   # -Z component of X axis (reversed)
+            rotation_matrix[0],   # X component of X axis
+            rotation_matrix[3],   # Y component of X axis
+            rotation_matrix[6]    # Z component of X axis
         ]
         
         # Position camera for optimal view (now that forward direction is correct)

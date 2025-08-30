@@ -23,7 +23,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="assets/base_so101_v2.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="assets/base_so101_v2.stl"/>
       </geometry>
       <material name="white"/>
     </visual>
@@ -45,7 +45,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="assets/motor_holder_so101_base_v1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="assets/motor_holder_so101_base_v1.stl"/>
       </geometry>
       <material name="black"/>
     </visual>
@@ -67,7 +67,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="assets/under_arm_so101_v1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="assets/under_arm_so101_v1.stl"/>
       </geometry>
       <material name="white"/>
     </visual>
@@ -89,7 +89,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="assets/upper_arm_so101_v1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="assets/upper_arm_so101_v1.stl"/>
       </geometry>
       <material name="white"/>
     </visual>
@@ -111,7 +111,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="assets/rotation_pitch_so101_v1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="assets/rotation_pitch_so101_v1.stl"/>
       </geometry>
       <material name="black"/>
     </visual>
@@ -133,7 +133,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="assets/wrist_roll_pitch_so101_v2.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="assets/wrist_roll_pitch_so101_v2.stl"/>
       </geometry>
       <material name="white"/>
     </visual>
@@ -155,7 +155,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="assets/wrist_roll_follower_so101_v1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="assets/wrist_roll_follower_so101_v1.stl"/>
       </geometry>
       <material name="black"/>
     </visual>

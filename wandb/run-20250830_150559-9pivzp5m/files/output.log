@@ -1,0 +1,199 @@
+🏗️  Creating training environment...
+📁 Found URDF: urdf/so101_new_calib.urdf
+📁 Loading SO-ARM101 URDF: urdf/so101_new_calib.urdf
+✅ SO-ARM101 URDF loaded successfully
+🔧 Robot has 8 total joints
+  Joint 0: shoulder_pan (type: 0)
+  Joint 1: shoulder_lift (type: 0)
+  Joint 2: elbow_flex (type: 0)
+  Joint 3: wrist_flex (type: 0)
+  Joint 4: wrist_roll (type: 0)
+  Joint 5: gripper_frame_joint (EXCLUDED - gripper frozen)
+  Joint 6: gripper (EXCLUDED - gripper frozen)
+✅ Using 5 controllable joints: [0, 1, 2, 3, 4]
+🎯 Target object created at [ 1.05790935 -0.06704838  0.05      ]
+✅ Robot reset to initial pose
+📁 Loading SO-ARM101 URDF: urdf/so101_new_calib.urdf
+✅ SO-ARM101 URDF loaded successfully
+🔧 Robot has 8 total joints
+  Joint 0: shoulder_pan (type: 0)
+  Joint 1: shoulder_lift (type: 0)
+  Joint 2: elbow_flex (type: 0)
+  Joint 3: wrist_flex (type: 0)
+  Joint 4: wrist_roll (type: 0)
+  Joint 5: gripper_frame_joint (EXCLUDED - gripper frozen)
+  Joint 6: gripper (EXCLUDED - gripper frozen)
+✅ Using 5 controllable joints: [0, 1, 2, 3, 4]
+🎯 Target object created at [0.9997979  0.19768874 0.05      ]
+✅ Robot reset to initial pose
+📁 Found URDF: urdf/so101_new_calib.urdf
+📁 Loading SO-ARM101 URDF: urdf/so101_new_calib.urdf
+✅ SO-ARM101 URDF loaded successfully
+🔧 Robot has 8 total joints
+  Joint 0: shoulder_pan (type: 0)
+  Joint 1: shoulder_lift (type: 0)
+  Joint 2: elbow_flex (type: 0)
+  Joint 3: wrist_flex (type: 0)
+  Joint 4: wrist_roll (type: 0)
+  Joint 5: gripper_frame_joint (EXCLUDED - gripper frozen)
+  Joint 6: gripper (EXCLUDED - gripper frozen)
+✅ Using 5 controllable joints: [0, 1, 2, 3, 4]
+🎯 Target object created at [ 0.99056007 -0.14453498  0.05      ]
+✅ Robot reset to initial pose
+📁 Loading SO-ARM101 URDF: urdf/so101_new_calib.urdf
+✅ SO-ARM101 URDF loaded successfully
+🔧 Robot has 8 total joints
+  Joint 0: shoulder_pan (type: 0)
+  Joint 1: shoulder_lift (type: 0)
+  Joint 2: elbow_flex (type: 0)
+  Joint 3: wrist_flex (type: 0)
+  Joint 4: wrist_roll (type: 0)
+  Joint 5: gripper_frame_joint (EXCLUDED - gripper frozen)
+  Joint 6: gripper (EXCLUDED - gripper frozen)
+✅ Using 5 controllable joints: [0, 1, 2, 3, 4]
+🎯 Target object created at [ 1.18734942 -0.13279429  0.05      ]
+✅ Robot reset to initial pose
+📁 Found URDF: urdf/so101_new_calib.urdf
+📁 Loading SO-ARM101 URDF: urdf/so101_new_calib.urdf
+✅ SO-ARM101 URDF loaded successfully
+🔧 Robot has 8 total joints
+  Joint 0: shoulder_pan (type: 0)
+  Joint 1: shoulder_lift (type: 0)
+  Joint 2: elbow_flex (type: 0)
+  Joint 3: wrist_flex (type: 0)
+  Joint 4: wrist_roll (type: 0)
+  Joint 5: gripper_frame_joint (EXCLUDED - gripper frozen)
+  Joint 6: gripper (EXCLUDED - gripper frozen)
+✅ Using 5 controllable joints: [0, 1, 2, 3, 4]
+🎯 Target object created at [1.13230071 0.13492046 0.05      ]
+✅ Robot reset to initial pose
+📁 Loading SO-ARM101 URDF: urdf/so101_new_calib.urdf
+✅ SO-ARM101 URDF loaded successfully
+🔧 Robot has 8 total joints
+  Joint 0: shoulder_pan (type: 0)
+  Joint 1: shoulder_lift (type: 0)
+  Joint 2: elbow_flex (type: 0)
+  Joint 3: wrist_flex (type: 0)
+  Joint 4: wrist_roll (type: 0)
+  Joint 5: gripper_frame_joint (EXCLUDED - gripper frozen)
+  Joint 6: gripper (EXCLUDED - gripper frozen)
+✅ Using 5 controllable joints: [0, 1, 2, 3, 4]
+🎯 Target object created at [0.840092   0.29319191 0.05      ]
+✅ Robot reset to initial pose
+📁 Found URDF: urdf/so101_new_calib.urdf
+📁 Loading SO-ARM101 URDF: urdf/so101_new_calib.urdf
+✅ SO-ARM101 URDF loaded successfully
+🔧 Robot has 8 total joints
+  Joint 0: shoulder_pan (type: 0)
+  Joint 1: shoulder_lift (type: 0)
+  Joint 2: elbow_flex (type: 0)
+  Joint 3: wrist_flex (type: 0)
+  Joint 4: wrist_roll (type: 0)
+  Joint 5: gripper_frame_joint (EXCLUDED - gripper frozen)
+  Joint 6: gripper (EXCLUDED - gripper frozen)
+✅ Using 5 controllable joints: [0, 1, 2, 3, 4]
+🎯 Target object created at [ 0.92470907 -0.16780464  0.05      ]
+✅ Robot reset to initial pose
+📁 Loading SO-ARM101 URDF: urdf/so101_new_calib.urdf
+✅ SO-ARM101 URDF loaded successfully
+🔧 Robot has 8 total joints
+  Joint 0: shoulder_pan (type: 0)
+  Joint 1: shoulder_lift (type: 0)
+  Joint 2: elbow_flex (type: 0)
+  Joint 3: wrist_flex (type: 0)
+  Joint 4: wrist_roll (type: 0)
+  Joint 5: gripper_frame_joint (EXCLUDED - gripper frozen)
+  Joint 6: gripper (EXCLUDED - gripper frozen)
+✅ Using 5 controllable joints: [0, 1, 2, 3, 4]
+🎯 Target object created at [ 1.19643748 -0.26129995  0.05      ]
+✅ Robot reset to initial pose
+🔬 Creating evaluation environment...
+📁 Found URDF: urdf/so101_new_calib.urdf
+📁 Loading SO-ARM101 URDF: urdf/so101_new_calib.urdf
+✅ SO-ARM101 URDF loaded successfully
+🔧 Robot has 8 total joints
+  Joint 0: shoulder_pan (type: 0)
+  Joint 1: shoulder_lift (type: 0)
+  Joint 2: elbow_flex (type: 0)
+  Joint 3: wrist_flex (type: 0)
+  Joint 4: wrist_roll (type: 0)
+  Joint 5: gripper_frame_joint (EXCLUDED - gripper frozen)
+  Joint 6: gripper (EXCLUDED - gripper frozen)
+✅ Using 5 controllable joints: [0, 1, 2, 3, 4]
+🎯 Target object created at [0.9444849  0.12090602 0.05      ]
+✅ Robot reset to initial pose
+📁 Loading SO-ARM101 URDF: urdf/so101_new_calib.urdf
+✅ SO-ARM101 URDF loaded successfully
+🔧 Robot has 8 total joints
+  Joint 0: shoulder_pan (type: 0)
+  Joint 1: shoulder_lift (type: 0)
+  Joint 2: elbow_flex (type: 0)
+  Joint 3: wrist_flex (type: 0)
+  Joint 4: wrist_roll (type: 0)
+  Joint 5: gripper_frame_joint (EXCLUDED - gripper frozen)
+  Joint 6: gripper (EXCLUDED - gripper frozen)
+✅ Using 5 controllable joints: [0, 1, 2, 3, 4]
+🎯 Target object created at [ 0.82358951 -0.27017079  0.05      ]
+✅ Robot reset to initial pose
+🚀 Training SAC on cuda
+📊 Policy networks: {'pi': [256, 256], 'qf': [256, 256]}
+Using cuda device
+Wrapping the env in a VecTransposeImage.
+/home/daffafrs/miniconda3/envs/lerobot/lib/python3.10/site-packages/stable_baselines3/common/buffers.py:606: UserWarning: This system does not have apparently enough memory to store the complete replay buffer 39.35GB > 26.00GB
+  warnings.warn(
+🎯 Starting training for 100 timesteps
+============================================================
+📁 Loading SO-ARM101 URDF: urdf/so101_new_calib.urdf
+✅ SO-ARM101 URDF loaded successfully
+🔧 Robot has 8 total joints
+  Joint 0: shoulder_pan (type: 0)
+  Joint 1: shoulder_lift (type: 0)
+  Joint 2: elbow_flex (type: 0)
+  Joint 3: wrist_flex (type: 0)
+  Joint 4: wrist_roll (type: 0)
+  Joint 5: gripper_frame_joint (EXCLUDED - gripper frozen)
+  Joint 6: gripper (EXCLUDED - gripper frozen)
+✅ Using 5 controllable joints: [0, 1, 2, 3, 4]
+🎯 Target object created at [1.01993885 0.05363879 0.05      ]
+✅ Robot reset to initial pose
+📁 Loading SO-ARM101 URDF: urdf/so101_new_calib.urdf
+✅ SO-ARM101 URDF loaded successfully
+🔧 Robot has 8 total joints
+  Joint 0: shoulder_pan (type: 0)
+  Joint 1: shoulder_lift (type: 0)
+  Joint 2: elbow_flex (type: 0)
+  Joint 3: wrist_flex (type: 0)
+  Joint 4: wrist_roll (type: 0)
+  Joint 5: gripper_frame_joint (EXCLUDED - gripper frozen)
+  Joint 6: gripper (EXCLUDED - gripper frozen)
+✅ Using 5 controllable joints: [0, 1, 2, 3, 4]
+🎯 Target object created at [0.93920808 0.01887389 0.05      ]
+✅ Robot reset to initial pose
+📁 Loading SO-ARM101 URDF: urdf/so101_new_calib.urdf
+✅ SO-ARM101 URDF loaded successfully
+🔧 Robot has 8 total joints
+  Joint 0: shoulder_pan (type: 0)
+  Joint 1: shoulder_lift (type: 0)
+  Joint 2: elbow_flex (type: 0)
+  Joint 3: wrist_flex (type: 0)
+  Joint 4: wrist_roll (type: 0)
+  Joint 5: gripper_frame_joint (EXCLUDED - gripper frozen)
+  Joint 6: gripper (EXCLUDED - gripper frozen)
+✅ Using 5 controllable joints: [0, 1, 2, 3, 4]
+🎯 Target object created at [1.17679781 0.07550621 0.05      ]
+✅ Robot reset to initial pose
+📁 Loading SO-ARM101 URDF: urdf/so101_new_calib.urdf
+✅ SO-ARM101 URDF loaded successfully
+🔧 Robot has 8 total joints
+  Joint 0: shoulder_pan (type: 0)
+  Joint 1: shoulder_lift (type: 0)
+  Joint 2: elbow_flex (type: 0)
+  Joint 3: wrist_flex (type: 0)
+  Joint 4: wrist_roll (type: 0)
+  Joint 5: gripper_frame_joint (EXCLUDED - gripper frozen)
+  Joint 6: gripper (EXCLUDED - gripper frozen)
+✅ Using 5 controllable joints: [0, 1, 2, 3, 4]
+🎯 Target object created at [ 1.10319827 -0.00559096  0.05      ]
+
+⏹️  Training interrupted by user
+💾 Model saved to models/so101_sac_active_vision_interrupted

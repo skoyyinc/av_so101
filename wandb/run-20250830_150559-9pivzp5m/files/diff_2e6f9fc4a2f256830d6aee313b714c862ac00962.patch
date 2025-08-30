@@ -1,0 +1,208 @@
+diff --git a/0_VRDemoSettings.txt b/0_VRDemoSettings.txt
+index 1fb12a9..5f6227f 100644
+--- a/0_VRDemoSettings.txt
++++ b/0_VRDemoSettings.txt
+@@ -1,4 +1,4 @@
+---camPosX= 0.100000
++--camPosX= 0.300000
+ --camPosY= 0.000000
+ --camPosZ= 0.000000
+ --camRotZ= 0.000000
+diff --git a/src/__pycache__/so_arm_gym_env.cpython-310.pyc b/src/__pycache__/so_arm_gym_env.cpython-310.pyc
+index b86b524..73fc98e 100644
+Binary files a/src/__pycache__/so_arm_gym_env.cpython-310.pyc and b/src/__pycache__/so_arm_gym_env.cpython-310.pyc differ
+diff --git a/src/__pycache__/tracking_policy.cpython-310.pyc b/src/__pycache__/tracking_policy.cpython-310.pyc
+index 9ff398e..b8e5f1d 100644
+Binary files a/src/__pycache__/tracking_policy.cpython-310.pyc and b/src/__pycache__/tracking_policy.cpython-310.pyc differ
+diff --git a/src/so_arm_gym_env.py b/src/so_arm_gym_env.py
+index 15602e7..d6e37af 100644
+--- a/src/so_arm_gym_env.py
++++ b/src/so_arm_gym_env.py
+@@ -86,9 +86,9 @@ class SO101CameraTrackingEnv(gym.Env):
+         
+         # Try different URDF options in order of preference
+         urdf_options = [
+-            urdf_dir / "so_arm101_camera.urdf",  # With meshes
++            urdf_dir / "so101_new_calib.urdf",   # Properly calibrated with meshes
++            urdf_dir / "so_arm101_camera.urdf",  # Camera version (may have alignment issues)
+             urdf_dir / "so_arm101_simple.urdf",  # Simple geometry
+-            urdf_dir / "so101_new_calib.urdf",   # If you have the original
+         ]
+         
+         for urdf_path in urdf_options:
+@@ -107,6 +107,7 @@ class SO101CameraTrackingEnv(gym.Env):
+             # Set search path for mesh files
+             urdf_dir = Path(self.urdf_path).parent
+             p.setAdditionalSearchPath(str(urdf_dir))
++            p.setAdditionalSearchPath(str(urdf_dir / "assets"))
+             
+             base_position = [0, 0, 0]
+             base_orientation = p.getQuaternionFromEuler([0, 0, 0])
+@@ -241,11 +242,13 @@ class SO101CameraTrackingEnv(gym.Env):
+             joint_name = info[1].decode('utf-8')
+             joint_type = info[2]
+             
+-            # Only use revolute and prismatic joints
+-            if joint_type in [p.JOINT_REVOLUTE, p.JOINT_PRISMATIC]:
++            # Only use revolute and prismatic joints, but exclude gripper
++            if joint_type in [p.JOINT_REVOLUTE, p.JOINT_PRISMATIC] and 'gripper' not in joint_name.lower():
+                 self.joint_indices.append(i)
+                 joint_info.append((i, joint_name, joint_type))
+                 print(f"  Joint {i}: {joint_name} (type: {joint_type})")
++            elif 'gripper' in joint_name.lower():
++                print(f"  Joint {i}: {joint_name} (EXCLUDED - gripper frozen)")
+         
+         # Limit to 6 controllable joints for SO-ARM101
+         self.joint_indices = self.joint_indices[:6]
+@@ -441,11 +444,11 @@ class SO101CameraTrackingEnv(gym.Env):
+         # Get the end-effector orientation and compute forward direction
+         rotation_matrix = p.getMatrixFromQuaternion(camera_orn)
+         
+-        # Camera forward direction (along -X axis in end-effector frame, was backwards)
++        # Camera forward direction (along X axis in end-effector frame)
+         forward_direction = [
+-            -rotation_matrix[0],  # -X component of X axis (reversed)
+-            -rotation_matrix[3],  # -Y component of X axis (reversed)
+-            -rotation_matrix[6]   # -Z component of X axis (reversed)
++            rotation_matrix[0],   # X component of X axis
++            rotation_matrix[3],   # Y component of X axis
++            rotation_matrix[6]    # Z component of X axis
+         ]
+         
+         # Position camera for optimal view (now that forward direction is correct)
+diff --git a/src/tracking_policy.py b/src/tracking_policy.py
+index a10fae7..d241860 100644
+--- a/src/tracking_policy.py
++++ b/src/tracking_policy.py
+@@ -18,7 +18,7 @@ class ImprovedTrackingPolicy:
+         
+         # Visual servoing parameters
+         self.error_threshold_fast = 0.3  # Switch to slow gain below this
+-        self.deadzone_radius = 0.08      # Stop moving if error is very small (increased for better centering)
++        self.deadzone_radius = 0.02      # Stop moving if error is very small (tighter centering)
+         
+         # Tracking state
+         self.last_target_position = None
+diff --git a/urdf/so101_new_calib.urdf b/urdf/so101_new_calib.urdf
+index 9552a23..76e5b8a 100644
+--- a/urdf/so101_new_calib.urdf
++++ b/urdf/so101_new_calib.urdf
+@@ -329,13 +329,11 @@
+     </collision>
+   </link>
+ 
+-  <!-- Joint from gripper to moving_jaw_so101_v1 -->
+-  <joint name="gripper" type="revolute">
++  <!-- Joint from gripper to moving_jaw_so101_v1 (frozen) -->
++  <joint name="gripper" type="fixed">
+     <origin xyz="0.0202 0.0188 -0.0234" rpy="1.5708 -5.24284e-08 -1.41553e-15"/>
+     <parent link="gripper_link"/>
+     <child link="moving_jaw_so101_v1_link"/>
+-    <axis xyz="0 0 1"/>
+-    <limit effort="10" velocity="10" lower="-0.174533" upper="1.74533"/>
+   </joint>
+ 
+   <transmission name="gripper_trans">
+@@ -349,6 +347,35 @@
+     </actuator>
+   </transmission>
+ 
++  <!-- Camera Link (mounted on top of gripper) -->
++  <link name="camera_link">
++    <inertial>
++      <origin xyz="0 0 0" rpy="0 0 0"/>
++      <mass value="0.05"/>
++      <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
++    </inertial>
++    <visual>
++      <origin xyz="0 0 0" rpy="0 0 0"/>
++      <geometry>
++        <box size="0.03 0.03 0.02"/>
++      </geometry>
++      <material name="sts3215"/>
++    </visual>
++    <collision>
++      <origin xyz="0 0 0" rpy="0 0 0"/>
++      <geometry>
++        <box size="0.03 0.03 0.02"/>
++      </geometry>
++    </collision>
++  </link>
++
++  <!-- Joint from gripper to camera (fixed on top) -->
++  <joint name="camera_joint" type="fixed">
++    <origin xyz="0 0 0.05" rpy="0 1.5708 0"/>
++    <parent link="gripper_link"/>
++    <child link="camera_link"/>
++  </joint>
++
+   <!-- Joint from wrist to gripper -->
+   <joint name="wrist_roll" type="revolute">
+     <origin xyz="5.55112e-17 -0.0611 0.0181" rpy="1.5708 0.0486795 3.14159"/>
+diff --git a/urdf/so_arm101_camera.urdf b/urdf/so_arm101_camera.urdf
+index 9ecf888..7598105 100644
+--- a/urdf/so_arm101_camera.urdf
++++ b/urdf/so_arm101_camera.urdf
+@@ -23,7 +23,7 @@
+     <visual>
+       <origin xyz="0 0 0" rpy="0 0 0"/>
+       <geometry>
+-        <mesh filename="assets/base_so101_v2.stl" scale="0.001 0.001 0.001"/>
++        <mesh filename="assets/base_so101_v2.stl"/>
+       </geometry>
+       <material name="white"/>
+     </visual>
+@@ -45,7 +45,7 @@
+     <visual>
+       <origin xyz="0 0 0" rpy="0 0 0"/>
+       <geometry>
+-        <mesh filename="assets/motor_holder_so101_base_v1.stl" scale="0.001 0.001 0.001"/>
++        <mesh filename="assets/motor_holder_so101_base_v1.stl"/>
+       </geometry>
+       <material name="black"/>
+     </visual>
+@@ -67,7 +67,7 @@
+     <visual>
+       <origin xyz="0 0 0" rpy="0 0 0"/>
+       <geometry>
+-        <mesh filename="assets/under_arm_so101_v1.stl" scale="0.001 0.001 0.001"/>
++        <mesh filename="assets/under_arm_so101_v1.stl"/>
+       </geometry>
+       <material name="white"/>
+     </visual>
+@@ -89,7 +89,7 @@
+     <visual>
+       <origin xyz="0 0 0" rpy="0 0 0"/>
+       <geometry>
+-        <mesh filename="assets/upper_arm_so101_v1.stl" scale="0.001 0.001 0.001"/>
++        <mesh filename="assets/upper_arm_so101_v1.stl"/>
+       </geometry>
+       <material name="white"/>
+     </visual>
+@@ -111,7 +111,7 @@
+     <visual>
+       <origin xyz="0 0 0" rpy="0 0 0"/>
+       <geometry>
+-        <mesh filename="assets/rotation_pitch_so101_v1.stl" scale="0.001 0.001 0.001"/>
++        <mesh filename="assets/rotation_pitch_so101_v1.stl"/>
+       </geometry>
+       <material name="black"/>
+     </visual>
+@@ -133,7 +133,7 @@
+     <visual>
+       <origin xyz="0 0 0" rpy="0 0 0"/>
+       <geometry>
+-        <mesh filename="assets/wrist_roll_pitch_so101_v2.stl" scale="0.001 0.001 0.001"/>
++        <mesh filename="assets/wrist_roll_pitch_so101_v2.stl"/>
+       </geometry>
+       <material name="white"/>
+     </visual>
+@@ -155,7 +155,7 @@
+     <visual>
+       <origin xyz="0 0 0" rpy="0 0 0"/>
+       <geometry>
+-        <mesh filename="assets/wrist_roll_follower_so101_v1.stl" scale="0.001 0.001 0.001"/>
++        <mesh filename="assets/wrist_roll_follower_so101_v1.stl"/>
+       </geometry>
+       <material name="black"/>
+     </visual>

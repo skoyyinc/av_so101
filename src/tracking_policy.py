@@ -18,7 +18,7 @@ class ImprovedTrackingPolicy:
         
         # Visual servoing parameters
         self.error_threshold_fast = 0.3  # Switch to slow gain below this
-        self.deadzone_radius = 0.08      # Stop moving if error is very small (increased for better centering)
+        self.deadzone_radius = 0.02      # Stop moving if error is very small (tighter centering)
         
         # Tracking state
         self.last_target_position = None

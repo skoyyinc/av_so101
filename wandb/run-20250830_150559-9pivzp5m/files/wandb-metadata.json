@@ -1,0 +1,44 @@
+{
+  "os":  "Linux-6.14.0-28-generic-x86_64-with-glibc2.39",
+  "python":  "CPython 3.10.13",
+  "startedAt":  "2025-08-30T14:05:59.692357Z",
+  "args":  [
+    "--timesteps",
+    "100"
+  ],
+  "program":  "/home/daffafrs/Documents/lerobot/av_so101/train_sac_active_vision.py",
+  "codePath":  "train_sac_active_vision.py",
+  "codePathLocal":  "train_sac_active_vision.py",
+  "git":  {
+    "remote":  "https://github.com/skoyyinc/av_so101.git",
+    "commit":  "2e6f9fc4a2f256830d6aee313b714c862ac00962"
+  },
+  "email":  "daffafrs.skoyy@gmail.com",
+  "root":  "/home/daffafrs/Documents/lerobot/av_so101",
+  "host":  "msi-ubuntu",
+  "executable":  "/home/daffafrs/miniconda3/envs/lerobot/bin/python",
+  "cpu_count":  10,
+  "cpu_count_logical":  16,
+  "gpu":  "NVIDIA GeForce RTX 4060 Laptop GPU",
+  "gpu_count":  1,
+  "disk":  {
+    "/":  {
+      "total":  "491002707968",
+      "used":  "103988858880"
+    }
+  },
+  "memory":  {
+    "total":  "33364570112"
+  },
+  "gpu_nvidia":  [
+    {
+      "name":  "NVIDIA GeForce RTX 4060 Laptop GPU",
+      "memoryTotal":  "8585740288",
+      "cudaCores":  3072,
+      "architecture":  "Ada",
+      "uuid":  "GPU-e7b884a9-8442-a187-5544-f56fd7ec4635"
+    }
+  ],
+  "cudaVersion":  "12.9",
+  "writerId":  "zr2d3c0b2kr0456ebz678y6masv20ncu"
+}

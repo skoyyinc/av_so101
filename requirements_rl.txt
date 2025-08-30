@@ -1,0 +1,23 @@
+# RL Training Requirements for SO101 Active Vision
+
+# Core RL framework
+stable-baselines3[extra]>=2.0.0
+gymnasium[all]>=0.29.0
+
+# PyTorch (choose appropriate version for your CUDA setup)
+torch>=2.0.0
+torchvision>=0.15.0
+
+# Logging and monitoring  
+wandb>=0.16.0
+tensorboard>=2.14.0
+
+# Video recording and visualization
+opencv-python>=4.8.0
+matplotlib>=3.7.0
+
+# Existing project requirements
+gymnasium[mujoco]
+pybullet
+numpy
+cv2

@@ -142,6 +142,13 @@ class SO101CameraTrackingEnv(gym.Env):
             
         if self.render_mode == "human":
             self.physics_client = p.connect(p.GUI)
+            # Set initial camera position closer to robot
+            p.resetDebugVisualizerCamera(
+                cameraDistance=1.5,     # Much closer than default
+                cameraYaw=45,           # Angle around robot
+                cameraPitch=-30,        # Looking down slightly  
+                cameraTargetPosition=[0, 0, 0.2]  # Focus on robot base
+            )
         else:
             self.physics_client = p.connect(p.DIRECT)
             
@@ -220,11 +227,12 @@ class SO101CameraTrackingEnv(gym.Env):
         
     def _create_target_object(self):
         """Create target object to track"""
-        # Create a bright red sphere
-        object_shape = p.createCollisionShape(p.GEOM_SPHERE, radius=0.08)
+        # Create a bright red cube (wee bit smaller)
+        cube_size = 0.05
+        object_shape = p.createCollisionShape(p.GEOM_BOX, halfExtents=[cube_size, cube_size, cube_size])
         object_visual = p.createVisualShape(
-            p.GEOM_SPHERE, 
-            radius=0.08,
+            p.GEOM_BOX, 
+            halfExtents=[cube_size, cube_size, cube_size],
             rgbaColor=[1, 0, 0, 1]  # Bright red
         )
         

@@ -99,9 +99,9 @@ class EnhancedTrackingDemo:
             # Create policy
             print("🧠 Creating tracking policy...")
             self.policy = ImprovedTrackingPolicy({
-                'p_gain_fast': 0.8,
-                'p_gain_slow': 0.3,
-                'max_velocity': 1.0
+                'p_gain_fast': 1.2,    # Increased from 0.8 for faster response
+                'p_gain_slow': 0.5,    # Increased from 0.3 for quicker fine adjustments
+                'max_velocity': 1.3    # Increased from 1.0 for higher max speed
             })
             
             # Reset environment first

@@ -86,9 +86,9 @@ class SO101CameraTrackingEnv(gym.Env):
         
         # Try different URDF options in order of preference
         urdf_options = [
-            urdf_dir / "so_arm101_camera.urdf",  # With meshes
+            urdf_dir / "so101_new_calib.urdf",   # Proper calibration with camera
+            urdf_dir / "so_arm101_camera.urdf",  # With meshes (backup)
             urdf_dir / "so_arm101_simple.urdf",  # Simple geometry
-            urdf_dir / "so101_new_calib.urdf",   # If you have the original
         ]
         
         for urdf_path in urdf_options:

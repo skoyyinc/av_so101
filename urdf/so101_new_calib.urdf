@@ -450,4 +450,38 @@
     </actuator>
   </transmission> 
 
+  <!-- Camera material -->
+  <material name="camera_material">
+    <color rgba="0.1 0.1 0.1 1"/>
+  </material>
+
+  <!-- Camera Link -->
+  <link name="camera_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.03 0.03 0.02"/>
+      </geometry>
+      <material name="camera_material"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.03 0.03 0.02"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.01"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia ixx="0.00001" ixy="0" ixz="0" iyy="0.00001" iyz="0" izz="0.00001"/>
+    </inertial>
+  </link>
+
+  <!-- Camera Joint - attached to gripper frame tip -->
+  <joint name="camera_joint" type="fixed">
+    <parent link="gripper_frame_link"/>
+    <child link="camera_link"/>
+    <origin xyz="0 0 0.02" rpy="0 -1.5708 0"/>
+  </joint>
+
 </robot>

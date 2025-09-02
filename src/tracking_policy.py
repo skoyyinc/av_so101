@@ -161,8 +161,8 @@ class ImprovedTrackingPolicy:
         
         # SO-ARM101 specific joint mapping
         if len(action) >= 6:
-            # Joint 0: Base rotation (yaw) - for horizontal error
-            action[0] = -gain * norm_error_x * 0.8
+            # Joint 0: Base rotation (yaw) - for horizontal error (inverted due to camera orientation)
+            action[0] = gain * norm_error_x * 0.8
             
             # Joint 1: Shoulder (pitch) - for vertical error  
             action[1] = gain * norm_error_y * 0.6
@@ -173,8 +173,8 @@ class ImprovedTrackingPolicy:
             # Joint 3: Wrist pitch - fine vertical adjustment
             action[3] = gain * norm_error_y * 0.3
             
-            # Joint 4: Wrist roll - fine horizontal adjustment
-            action[4] = -gain * norm_error_x * 0.2
+            # Joint 4: Wrist roll - fine horizontal adjustment (inverted due to camera orientation)
+            action[4] = gain * norm_error_x * 0.2
             
             # Joint 5: Wrist yaw - minimal movement for stability
             action[5] = 0.0

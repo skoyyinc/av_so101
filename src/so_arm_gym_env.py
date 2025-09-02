@@ -70,7 +70,7 @@ class SO101CameraTrackingEnv(gym.Env):
         # Tracking state
         self.target_position = np.array([0.5, 0.0, 0.1])
         self.camera_center = np.array([camera_width//2, camera_height//2])
-        self.max_episode_steps = 500
+        self.max_episode_steps = float('inf')  # No episode limit for demo
         self.current_step = 0
         
         # Performance tracking
@@ -549,11 +549,8 @@ class SO101CameraTrackingEnv(gym.Env):
         return reward
         
     def _is_terminated(self, observation):
-        """Check if episode should terminate"""
-        # Success condition: target well-centered for extended period
-        if self.target_centered_steps > 100:  # 10 seconds at 10 Hz
-            return True
-            
+        """Check if episode should terminate - disabled for demo"""
+        # No auto-termination for demo mode
         return False
         
     def _get_info(self):

@@ -1,0 +1,17 @@
+RL Search Training Summary
+==================================================
+
+Training Episodes: 0
+Overall Success Rate: 0.000
+Mean Episode Reward: 0.00
+Mean Search Time: 0.00s
+
+Safety Metrics:
+  Joint Violations/Episode: 0.000
+  Collision Rate: 0.000
+  Stuck Episode Rate: 0.000
+
+Performance Trends:
+  Reward Trend: unknown
+  Success Trend: unknown
+

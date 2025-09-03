@@ -27,6 +27,7 @@ class SO101CameraTrackingEnv(gym.Env):
         self.physics_client = None
         self.robot_id = None
         self.target_object_id = None
+        self.distractor_ids = []  # List of blue distractor cubes
         self.plane_id = None
         
         # Robot parameters - SO-ARM101 specific
@@ -176,6 +177,9 @@ class SO101CameraTrackingEnv(gym.Env):
         # Create target object
         self._create_target_object()
         
+        # Create distractor objects
+        self._create_distractor_objects()
+        
         # Set initial robot configuration
         self._reset_robot_pose()
         
@@ -236,11 +240,38 @@ class SO101CameraTrackingEnv(gym.Env):
             rgbaColor=[1, 0, 0, 1]  # Bright red
         )
         
-        # Randomize target position within reach
-        x = np.random.uniform(0.3, 0.8)
-        y = np.random.uniform(-0.4, 0.4)
-        z = np.random.uniform(0.1, 0.6)
-        self.target_position = np.array([x, y, z])
+        # Randomize target position within reach - AVOID FRONT OF ROBOT
+        # Robot is at origin facing +X, so avoid the front cone (small Y, positive X)
+        position_found = False
+        attempts = 0
+        
+        while not position_found and attempts < 50:
+            x = np.random.uniform(0.4, 0.9)  # Further from robot
+            y = np.random.uniform(-0.6, 0.6)  # Wider range
+            z = np.random.uniform(0.15, 0.7)  # Higher range
+            
+            # Avoid front cone of robot (where camera initially looks)
+            # Front cone: positive X, small |Y| 
+            distance_from_origin = np.sqrt(x**2 + y**2)
+            angle_from_front = abs(np.arctan2(y, x))  # Angle from +X axis
+            
+            # MUCH MORE RESTRICTIVE: Force target to sides/back
+            # Avoid front 120-degree cone (±60° from front)
+            if distance_from_origin > 0.5 and angle_from_front > np.pi/3:  # > 60 degrees from front
+                position_found = True
+                self.target_position = np.array([x, y, z])
+            
+            attempts += 1
+        
+        # Fallback if no position found
+        if not position_found:
+            # Place target to the side/back - DEFINITELY NOT IN FRONT
+            angle = np.random.uniform(2*np.pi/3, 4*np.pi/3)  # 120° to 240° (left side to back to right side)
+            distance = np.random.uniform(0.6, 0.8)
+            x = distance * np.cos(angle)
+            y = distance * np.sin(angle)  
+            z = np.random.uniform(0.15, 0.6)
+            self.target_position = np.array([x, y, z])
         
         self.target_object_id = p.createMultiBody(
             baseMass=0.1,
@@ -250,6 +281,66 @@ class SO101CameraTrackingEnv(gym.Env):
         )
         
         print(f"🎯 Target object created at {self.target_position}")
+    
+    def _create_distractor_objects(self):
+        """Create blue distractor cubes to test object detection"""
+        cube_size = 0.05  # Same size as target
+        num_distractors = 3  # Number of blue cubes
+        
+        # Create collision and visual shapes for blue cubes
+        distractor_shape = p.createCollisionShape(p.GEOM_BOX, halfExtents=[cube_size, cube_size, cube_size])
+        distractor_visual = p.createVisualShape(
+            p.GEOM_BOX,
+            halfExtents=[cube_size, cube_size, cube_size],
+            rgbaColor=[0, 0, 1, 1]  # Bright blue
+        )
+        
+        # Ensure minimum distance between objects and robot
+        min_distance_between_objects = 0.35  # Minimum 35cm between objects
+        min_distance_from_robot = 0.4  # Minimum 40cm from robot base
+        positions = [self.target_position]  # Start with target position
+        
+        for i in range(num_distractors):
+            attempts = 0
+            while attempts < 50:  # Try up to 50 times to find good position
+                # Generate random position - further from robot
+                x = np.random.uniform(0.3, 1.0)  # Extended range
+                y = np.random.uniform(-0.7, 0.7)  # Wider range
+                z = np.random.uniform(0.1, 0.7)   # Higher range
+                new_pos = np.array([x, y, z])
+                
+                # Check minimum distance from robot origin
+                distance_from_robot = np.linalg.norm(new_pos)
+                if distance_from_robot < min_distance_from_robot:
+                    continue
+                
+                # Check distance from all existing objects
+                too_close = False
+                for existing_pos in positions:
+                    distance = np.linalg.norm(new_pos - existing_pos)
+                    if distance < min_distance_between_objects:
+                        too_close = True
+                        break
+                
+                if not too_close:
+                    # Good position found
+                    positions.append(new_pos)
+                    
+                    # Create distractor cube
+                    distractor_id = p.createMultiBody(
+                        baseMass=0.1,
+                        baseCollisionShapeIndex=distractor_shape,
+                        baseVisualShapeIndex=distractor_visual,
+                        basePosition=new_pos
+                    )
+                    self.distractor_ids.append(distractor_id)
+                    print(f"🔷 Blue distractor {i+1} created at {new_pos}")
+                    break
+                    
+                attempts += 1
+            
+            if attempts >= 50:
+                print(f"⚠️  Could not place distractor {i+1} after 50 attempts")
         
     def _reset_robot_pose(self):
         """Reset robot to initial pose"""

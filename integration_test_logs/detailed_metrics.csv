@@ -1,0 +1,4 @@
+episode,timestamp,reward,length,outcome,search_time,success_rate,mean_reward,workspace_coverage,joint_violations,collisions,target_distance,difficulty_level
+0,1756860113.9420178,188.30070746690026,50,timeout,0.0,0.0,188.30070746690026,0.3,0,0,0.5,1
+1,1756860123.576578,162.32228444001575,50,timeout,0.0,0.0,175.311495953458,0.3,0,0,0.5,1
+2,1756860132.3483973,207.56548879552597,50,timeout,0.0,0.0,186.062826900814,0.2,0,0,0.5,1
